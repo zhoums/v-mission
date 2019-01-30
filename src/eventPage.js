@@ -141,8 +141,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
 
           initParam.identityType = "" // todo : not founded this item
-          initParam.serviceScore = data.darenMissionData && data.darenMissionData.avgScore ? data.darenMissionData.avgScore : ""
-          initParam.orderTakingFinishRate = data.darenMissionData && data.darenMissionData.completeRate ? data.darenMissionData.completeRate : "";
+          initParam.serviceScore = darenMain.darenMissionData && darenMain.darenMissionData.avgScore ? darenMain.darenMissionData.avgScore : ""
+          initParam.orderTakingFinishRate = darenMain.darenMissionData && darenMain.darenMissionData.completeRate ? darenMain.darenMissionData.completeRate : "";
 
           let darenContent7 = await getDarenContent(item.darenId);
           initParam.contentPub7Days = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : "";
@@ -151,7 +151,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           initParam.contentLiveBrowse7Days = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : "";
           initParam.contentVideoBrowse7Days = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : "";
 
-          sevenDays.statDate = util.getDateRange(7);
+          // sevenDays.statDate = util.getDateRange(7);
           sevenDays.contentPub = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : "";
           sevenDays.contentBrowse = darenContent7.result && darenContent7.result.text_pv ? darenContent7.result.text_pv : "";
           sevenDays.contentGuide = darenContent7.result && darenContent7.result.ipv ? darenContent7.result.ipv : "";
@@ -165,7 +165,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           initParam.contentLiveBrowse30Days = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : "";
           initParam.contentVideoBrowse30Days = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : "";
 
-          thirtyDays.statDate = util.getDateRange(30);
+          // thirtyDays.statDate = util.getDateRange(30);
           thirtyDays.contentPub = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : "";
           thirtyDays.contentBrowse = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : "";
           thirtyDays.contentGuide = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : "";
@@ -179,7 +179,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           initParam.contentLiveBrowse90Days = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : "";
           initParam.contentVideoBrowse90Days = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : "";
 
-          ninetyDays.statDate = util.getDateRange(90);
+          // ninetyDays.statDate = util.getDateRange(90);
           ninetyDays.contentPub = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : "";
           ninetyDays.contentBrowse = darenContent90.result && darenContent90.result.text_pv ? darenContent90.result.text_pv : "";
           ninetyDays.contentGuide = darenContent90.result && darenContent90.result.ipv ? darenContent90.result.ipv : "";
