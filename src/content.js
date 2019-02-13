@@ -19,7 +19,7 @@
          authorPageUrl: url
        });
      } else if (request.greeting == "vm-turnpage") {
-       console.log('vm-turnpage')
+       console.log('vm-turnpage',request.page)
        chrome.runtime.sendMessage({
          greeting: "VSCmission",
        }, function(response) {

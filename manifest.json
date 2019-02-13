@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "v-mission.0",
+  "name": "molimedia-tools",
   "description": "",
   "version": "1.0.0",
   "icons": {
@@ -9,9 +9,9 @@
     "128": "images/icon.png"
   },
   "browser_action": {
-    "default_title": "willbePlug1.0",
-    "default_icon": "images/icon.png"
-    // "default_popup": "popup.html"
+    "default_title": "molimedia-tools 1.0.0",
+    "default_icon": "images/icon.png",
+    "default_popup": "popup.html"
   },
   "permissions": [
     "cookies",
@@ -31,7 +31,16 @@
     "page": "background.html"
   },
   "content_scripts": [{
-    "matches": ["https://market.m.taobao.com/*", "https://*.chowsangsang.com/*"],
+    "matches": [
+      "http://*.molimediagroup.com/*",
+      "https://*.molimediagroup.com/*",
+
+      "http:// *.willbe.net.cn/*",
+      "https:// *.willbe.net.cn/*",
+      "http://*.ittun.com/*",
+
+      "https://*.chowsangsang.com/*"
+    ],
     "js": ["js/jquery.min.js", "content.js"]
   }]
 }

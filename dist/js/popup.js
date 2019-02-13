@@ -1,5 +1,10 @@
 $(function(){
-    /*var bg = chrome.extension.getBackgroundPage();
-    bg.setBegin();*/
+  $("#ck").on("click", () => {
+    chrome.runtime.sendMessage({
+      greeting: "VSCmission",
+    }, function(response) {
+      console.log('response');
+    });
+  })
 
 })

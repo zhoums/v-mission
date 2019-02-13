@@ -1,5 +1,4 @@
 // 入口
-
 import config from './config'
 import util from './util'
 
@@ -29,12 +28,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     }
   }, {
     urls: ['https://*.taobao.com/*']
-  }, ["blocking", "requestHeaders"]
+  }, ["blocking", "requestHeaders","extraHeaders"]
 );
 let darenPageUrl = [];
 //VSC 第二次V任务功能前缀
 let VSCpage = 1;
-let VSCpagesize = 20;
+let VSCpagesize = 1;
 let VSCtotalpage = -1;
 let VSCtoken = 'KE923jddudk3FYjWedkHH';
 let VSCtab;
@@ -64,13 +63,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
       })
     }
-    // console.log('hello darenPageUrl',darenPageUrl)
     sendResponse({
       jj: 'kjdsjfd'
     })
   }
   if (request.greeting == "postDarenData") {
-    // console.log('postDarenData',request.data)
     $.ajax({
       url: config.willbeServer + '/tb/v/syncVTaskDetail.wb',
       type: 'post',
@@ -81,13 +78,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
   }
   if (request.greeting == 'VSCmission') {
+    // getDarenMain('2662685830')
+    // getDarenMain('2662685830')
+    // return;
     chrome.tabs.getSelected(null, function(tab) {
       if (!VSCtab) {
         VSCtab = tab.id;
       }
       getDarenId(VSCpage, VSCpagesize).then((data) => {
+
+        console.log('getid res',VSCpage,data);
         data.result.list.forEach(async (item, key) => {
-          let needTurnpage = key == data.result.list.length - 1;
+          let needTurnpage = (key == (data.result.list.length - 1));
+          console.log('needTurnpage',needTurnpage)
+          // console.log('each',key,needTurnpage,key == data.result.list.length - 1)
           let daren_main = false,
             qry_fans = false,
             get_price = false,
@@ -114,8 +118,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             darenId: item.darenId,
             statType: 3
           }
-
+console.log('needTurnpage 2',item.darenId)
           let darenMain = await getDarenMain(item.darenId);
+          console.log('needTurnpage 3')
           initParam.fansCount = darenMain.fansCount || ""
           initParam.agencyName = darenMain.darenAgency && darenMain.darenAgency.agencyName ? darenMain.darenAgency.agencyName : ""
           initParam.agencyUrl = darenMain.darenAgency && darenMain.darenAgency.agencyID ? `https://v.taobao.com/v/home?spm=a21xh.11250901.0.0.6a6f6b6fpgjIgW&userId=${darenMain.darenAgency.agencyID}` : ""
@@ -137,60 +142,64 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               initParam.introduction += darenMain.desc
             }
           } else {
-            console.log(key + " unexpected in json")
+            // console.log(key + " unexpected in json") test
           }
 
           initParam.identityType = "" // todo : not founded this item
           initParam.serviceScore = darenMain.darenMissionData && darenMain.darenMissionData.avgScore ? darenMain.darenMissionData.avgScore : ""
           initParam.orderTakingFinishRate = darenMain.darenMissionData && darenMain.darenMissionData.completeRate ? darenMain.darenMissionData.completeRate : "";
-
+console.log('needTurnpage 4')
           let darenContent7 = await getDarenContent(item.darenId);
-          initParam.contentPub7Days = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : "";
-          initParam.contentBrowse7Days = darenContent7.result && darenContent7.result.text_pv ? darenContent7.result.text_pv : "";
-          initParam.contentGuide7Days = darenContent7.result && darenContent7.result.ipv ? darenContent7.result.ipv : "";
-          initParam.contentLiveBrowse7Days = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : "";
-          initParam.contentVideoBrowse7Days = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : "";
+          console.log('needTurnpage 5')
+          initParam.contentPub7Days = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : 0;
+          initParam.contentBrowse7Days = darenContent7.result && darenContent7.result.text_pv ? darenContent7.result.text_pv : 0;
+          initParam.contentGuide7Days = darenContent7.result && darenContent7.result.ipv ? darenContent7.result.ipv : 0;
+          initParam.contentLiveBrowse7Days = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : 0;
+          initParam.contentVideoBrowse7Days = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : 0;
 
           // sevenDays.statDate = util.getDateRange(7);
-          sevenDays.contentPub = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : "";
-          sevenDays.contentBrowse = darenContent7.result && darenContent7.result.text_pv ? darenContent7.result.text_pv : "";
-          sevenDays.contentGuide = darenContent7.result && darenContent7.result.ipv ? darenContent7.result.ipv : "";
-          sevenDays.contentLiveBrowse = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : "";
-          sevenDays.contentVideoBrowse = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : "";
-
+          sevenDays.contentPub = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : 0;
+          sevenDays.contentBrowse = darenContent7.result && darenContent7.result.text_pv ? darenContent7.result.text_pv : 0;
+          sevenDays.contentGuide = darenContent7.result && darenContent7.result.ipv ? darenContent7.result.ipv : 0;
+          sevenDays.contentLiveBrowse = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : 0;
+          sevenDays.contentVideoBrowse = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : 0;
+console.log('getDarenContent7 success')
           let darenContent30 = await getDarenContent(item.darenId, 30);
-          initParam.contentPub30Days = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : "";
-          initParam.contentBrowse30Days = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : "";
-          initParam.contentGuide30Days = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : "";
-          initParam.contentLiveBrowse30Days = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : "";
-          initParam.contentVideoBrowse30Days = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : "";
+          initParam.contentPub30Days = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : 0;
+          initParam.contentBrowse30Days = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : 0;
+          initParam.contentGuide30Days = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : 0;
+          initParam.contentLiveBrowse30Days = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : 0;
+          initParam.contentVideoBrowse30Days = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : 0;
 
           // thirtyDays.statDate = util.getDateRange(30);
-          thirtyDays.contentPub = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : "";
-          thirtyDays.contentBrowse = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : "";
-          thirtyDays.contentGuide = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : "";
-          thirtyDays.contentLiveBrowse = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : "";
-          thirtyDays.contentVideoBrowse = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : "";
-
+          thirtyDays.contentPub = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : 0;
+          thirtyDays.contentBrowse = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : 0;
+          thirtyDays.contentGuide = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : 0;
+          thirtyDays.contentLiveBrowse = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : 0;
+          thirtyDays.contentVideoBrowse = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : 0;
+console.log('getDarenContent30 success')
           let darenContent90 = await getDarenContent(item.darenId, 90);
-          initParam.contentPub90Days = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : "";
-          initParam.contentBrowse90Days = darenContent90.result && darenContent90.result.text_pv ? darenContent90.result.text_pv : "";
-          initParam.contentGuide90Days = darenContent90.result && darenContent90.result.ipv ? darenContent90.result.ipv : "";
-          initParam.contentLiveBrowse90Days = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : "";
-          initParam.contentVideoBrowse90Days = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : "";
+          initParam.contentPub90Days = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : 0;
+          initParam.contentBrowse90Days = darenContent90.result && darenContent90.result.text_pv ? darenContent90.result.text_pv : 0;
+          initParam.contentGuide90Days = darenContent90.result && darenContent90.result.ipv ? darenContent90.result.ipv : 0;
+          initParam.contentLiveBrowse90Days = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : 0;
+          initParam.contentVideoBrowse90Days = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : 0;
 
           // ninetyDays.statDate = util.getDateRange(90);
-          ninetyDays.contentPub = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : "";
-          ninetyDays.contentBrowse = darenContent90.result && darenContent90.result.text_pv ? darenContent90.result.text_pv : "";
-          ninetyDays.contentGuide = darenContent90.result && darenContent90.result.ipv ? darenContent90.result.ipv : "";
-          ninetyDays.contentLiveBrowse = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : "";
-          ninetyDays.contentVideoBrowse = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : "";
+          ninetyDays.contentPub = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : 0;
+          ninetyDays.contentBrowse = darenContent90.result && darenContent90.result.text_pv ? darenContent90.result.text_pv : 0;
+          ninetyDays.contentGuide = darenContent90.result && darenContent90.result.ipv ? darenContent90.result.ipv : 0;
+          ninetyDays.contentLiveBrowse = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : 0;
+          ninetyDays.contentVideoBrowse = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : 0;
 
-
+console.log('getDarenContent90 success')
           let qryFans = await getQryFans(item.darenId);
           initFans = Object.assign({}, initFans, qryFans)
-          postVmission(initParam, initFans, sevenDays, thirtyDays, ninetyDays, needTurnpage)
+          console.log('postVmission begin')
+          await postVmission(initParam, initFans, sevenDays, thirtyDays, ninetyDays, needTurnpage)
         })
+      }).catch((data)=>{
+        console.log('getDarenId error',data)
       })
     })
 
@@ -243,113 +252,13 @@ async function fronpageFunc() {
   let otherPageList = [];
   let articleList = [];
   let articleAutherPages = [];
-  // let articleUrles = await getDarenArticleUrl();
-  let articleUrles = {
-    msg: "成功",
-    result: {
-      page: 1,
-      totalCount: 7,
-      pageSize: 20,
-      maxPage: 2,
-      jumpPages: null,
-      result: null,
-      extraInfo: null,
-      resultMsg: null,
-      list: [{
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207060899246"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207098140347"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206220099049"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207894831270"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206647136251"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206686179402"
-        },
-        {
-          id: 0,
-          type: 10,
-          url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207172456669"
-        },
-      ]
-    },
-    status: 0
-  }
+  let articleUrles = await getDarenArticleUrl();
   articleList = [...articleList, ...articleUrles.result.list];
   //总页数大于1页做翻页处理
   if (articleUrles.result.maxPage > 1) {
     console.log('turnPage')
     for (let i = 2; i <= articleUrles.result.maxPage; i++) {
-      // var pageData = await getDarenArticleUrl(i);
-      var pageData = {
-        msg: "成功",
-        result: {
-          page: 1,
-          totalCount: 7,
-          pageSize: 20,
-          maxPage: 2,
-          jumpPages: null,
-          result: null,
-          extraInfo: null,
-          resultMsg: null,
-          list: [{
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207060899246"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207098140347"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206220099049"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207894831270"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206647136251"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=206686179402"
-            },
-            {
-              id: 0,
-              type: 10,
-              url: "https://market.m.taobao.com/apps/market/content/index.html?wh_weex=true&contentId=207172456669"
-            },
-          ]
-        },
-        status: 0
-      };
+      var pageData = await getDarenArticleUrl(i);
       articleList = [...articleList, ...pageData.result.list];
     }
   }
@@ -490,8 +399,7 @@ async function vFunc() {
 }
 
 // VSC mission function
-let getDarenId = (page = 1, pageSize = 20) => {
-  // console.log('getDarenId page:', page)
+let getDarenId = (page = 1, pageSize = 1000) => {
   return new Promise((resolve, reject) => {
     $.ajax({
       url: `${config.willbeServer}/tb/v/getAllVTaskDarenIds.wb`,
@@ -523,21 +431,27 @@ let getDarenId = (page = 1, pageSize = 20) => {
 }
 let getDarenMain = darenId => {
   return new Promise((resolve, reject) => {
-    $.ajax({
-      url: `https://v.taobao.com/micromission/daren/daren_main_portalv3.do?userId=${darenId}&_ksTS=1548232314754_17`,
-      // async:false,
-      success(data) {
-        data = JSON.parse(data); //jsonp 字符串
-        if (data.status == 0) {
-          resolve(data.data)
-        } else {
+    try{
+      $.ajax({
+        url: `https://v.taobao.com/micromission/daren/daren_main_portalv3.do?userId=${darenId}&_ksTS=1548232314754_17`,
+        // async:false,
+        success(data) {
+          data = JSON.parse(data); //jsonp 字符串
+          if (data.status == 0) {
+            resolve(data.data)
+          } else {
+            reject(data.msg)
+          }
+        },
+        error(data) {
+          console.log('llllll',data)
           reject(data.msg)
         }
-      },
-      error(data) {
-        reject(data.msg)
-      }
-    })
+      })
+    }catch(err){
+      console.log('errerrerrerr')
+      reject(err)
+    }
   })
 }
 let getDarenContent = (darenId, day = 7) => {
@@ -559,12 +473,11 @@ let getDarenContent = (darenId, day = 7) => {
     })
   })
 }
-let postVmission = async (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage = false) => {
-  // console.log('post', param, fasnObj, sevenDays, thirtyDays, ninetyDays)
-  await $.ajax({
+let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage = false) => {
+  $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskDetail.wb`,
     type: 'post',
-    // async:false,
+    async:false,
     headers: {
       token: VSCtoken,
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -574,10 +487,10 @@ let postVmission = async (param, fasnObj, sevenDays, thirtyDays, ninetyDays, tur
       // console.log(response)
     }
   })
-  await $.ajax({
+  $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskFans.wb`,
     type: 'post',
-    // async:false,
+    async:false,
     headers: {
       token: VSCtoken,
       'Content-Type': 'application/json'
@@ -587,10 +500,10 @@ let postVmission = async (param, fasnObj, sevenDays, thirtyDays, ninetyDays, tur
       // console.log(response)
     }
   })
-  await $.ajax({
+  $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
-    // async:false,
+    async:false,
     headers: {
       token: VSCtoken,
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -600,10 +513,10 @@ let postVmission = async (param, fasnObj, sevenDays, thirtyDays, ninetyDays, tur
       // console.log(response)
     }
   })
-  await $.ajax({
+  $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
-    // async:false,
+    async:false,
     headers: {
       token: VSCtoken,
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -613,26 +526,32 @@ let postVmission = async (param, fasnObj, sevenDays, thirtyDays, ninetyDays, tur
       // console.log(response)
     }
   })
-  await $.ajax({
+  $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
-    // async:false,
+    async:false,
     headers: {
       token: VSCtoken,
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     data: ninetyDays,
     success(response) {
-      // console.log(response)
+      console.log('syncVTaskStat response',turnpage,VSCpage,VSCtotalpage)
+    },
+    error(){
+      console.log('skjdaldjlfkl')
     }
   })
   if (turnpage && VSCpage < VSCtotalpage) {
+    console.log('turn',turnpage,VSCpage,VSCtotalpage)
     VSCpage++;
     chrome.tabs.sendRequest(VSCtab, {
-      greeting: "vm-turnpage"
+      greeting: "vm-turnpage",
+      page:VSCpage
     })
   } else if (turnpage && VSCpage == VSCtotalpage) {
-    VSCpag = 1;
+    console.log('turn ELSE',turnpage,VSCpage,VSCtotalpage)
+    VSCpage = 1;
     VSCtotalpage = -1;
   }
 }
