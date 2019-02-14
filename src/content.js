@@ -14,12 +14,10 @@
        }, function(response) {
          console.log(response);
        });
-       console.log('request', request)
        sendResponse({
          authorPageUrl: url
        });
      } else if (request.greeting == "vm-turnpage") {
-       console.log('vm-turnpage',request.page)
        chrome.runtime.sendMessage({
          greeting: "VSCmission",
        }, function(response) {
@@ -59,16 +57,16 @@
        console.log(response);
      });
    }
-   console.log(location.href, location.href.includes('chowsangsang.com'))
-   if (location.href.includes('chowsangsang.com')) {
-     let btn = $('<button id="btn_business" style="position:fixed;z-index:10000">回填参谋数据</button>');
-     $("body").prepend(btn);
-     $("#btn_business").on("click", () => {
-       chrome.runtime.sendMessage({
-         greeting: "VSCmission",
-       }, function(response) {
-         console.log(response);
-       });
-     })
-   }
+   // console.log(location.href, location.href.includes('chowsangsang.com'))
+   // if (location.href.includes('chowsangsang.com')) {
+   //   let btn = $('<button id="btn_business" style="position:fixed;z-index:10000">回填参谋数据</button>');
+   //   $("body").prepend(btn);
+   //   $("#btn_business").on("click", () => {
+   //     chrome.runtime.sendMessage({
+   //       greeting: "VSCmission",
+   //     }, function(response) {
+   //       console.log(response);
+   //     });
+   //   })
+   // }
  })
