@@ -2,14 +2,14 @@
   "manifest_version": 2,
   "name": "molimedia-tools",
   "description": "",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "icons": {
     "16": "images/icon.png",
     "48": "images/icon.png",
     "128": "images/icon.png"
   },
   "browser_action": {
-    "default_title": "molimedia-tools 1.0.1",
+    "default_title": "molimedia-tools 1.0.0",
     "default_icon": "images/icon.png",
     "default_popup": "popup.html"
   },
