@@ -39,7 +39,9 @@
       "https:// *.willbe.net.cn/*",
       "http://*.ittun.com/*",
 
-      "https://*.chowsangsang.com/*"
+      "http://*/*",
+      "https://*/*"
+
     ],
     "js": ["js/jquery.min.js", "content.js"]
   }]

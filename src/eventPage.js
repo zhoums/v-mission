@@ -78,9 +78,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
   }
   if (request.greeting == 'VSCmission') {
-    // getDarenMain('2662685830')
-    // getDarenMain('2662685830')
-    // return;
+    if (VSCpage > 1) {
+      util.sleep(1000)
+    }
     chrome.tabs.getSelected(null, function(tab) {
       if (!VSCtab) {
         VSCtab = tab.id;
@@ -114,11 +114,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
           // console.log('daren id:'+item.darenId)
           let darenMain = await getDarenMain(item.darenId);
-          if(darenMain){
+          if (darenMain) {
             initParam.fansCount = darenMain ? darenMain.fansCount : 0
             initParam.agencyName = darenMain && darenMain.darenAgency && darenMain.darenAgency.agencyName ? darenMain.darenAgency.agencyName : 0
             initParam.agencyUrl = darenMain && darenMain.darenAgency && darenMain.darenAgency.agencyID ? `https://v.taobao.com/v/home?spm=a21xh.11250901.0.0.6a6f6b6fpgjIgW&userId=${darenMain.darenAgency.agencyID}` : ""
-            initParam.scoreDarenCapacity = darenMain?darenMain.darenScore : 0
+            initParam.scoreDarenCapacity = darenMain ? darenMain.darenScore : 0
             initParam.orderTakingRate = darenMain && darenMain.darenMissionData && darenMain.darenMissionData.receiveRate ? darenMain.darenMissionData.receiveRate : ""
             initParam.orderTakingResponseTime = darenMain && darenMain.darenMissionData && darenMain.darenMissionData.responseTime ? darenMain.darenMissionData.responseTime : ""
             initParam.serviceTotalCustomer = darenMain && darenMain.darenMissionData && darenMain.darenMissionData.cooperateSellerCount ? darenMain.darenMissionData.cooperateSellerCount : 0
@@ -191,7 +191,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             initFans = Object.assign({}, initFans, qryFans)
 
             await postVmission(initParam, initFans, sevenDays, thirtyDays, ninetyDays, needTurnpage)
-          }else if(needTurnpage){
+          } else if (needTurnpage) {
 
             if (VSCpage < VSCtotalpage) {
               VSCpage++;
@@ -452,7 +452,7 @@ let getDarenMain = darenId => {
           }
         },
         error(data) {
-            resolve(null)
+          resolve(null)
         }
       })
     } catch (err) {
@@ -480,6 +480,7 @@ let getDarenContent = (darenId, day = 7) => {
   })
 }
 let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage = false) => {
+  util.sleep(500)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskDetail.wb`,
     type: 'post',
@@ -493,6 +494,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
+  util.sleep(500)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskFans.wb`,
     type: 'post',
@@ -506,6 +508,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
+  util.sleep(500)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
@@ -519,6 +522,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
+  util.sleep(500)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
@@ -532,6 +536,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
+  util.sleep(500)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
