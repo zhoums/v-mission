@@ -1,6 +1,7 @@
 // 入口
 import config from './config'
 import util from './util'
+import {darenFansCountList,darenCateTypeList,darenRoleList}from './config'
 
 //设置refer
 chrome.webRequest.onBeforeSendHeaders.addListener(
@@ -583,3 +584,37 @@ let getQryFans = darenId => {
     })
   })
 }
+// VSC mission functio -- get daren id function
+let mainAnchor = (cateType,fansCount,role,currentPage=1)=>{
+  return new Promise((resolve,reject)=>{
+    $.ajax({
+      url:`https://v.taobao.com/micromission/req/selectCreatorV3.do`,
+      data:{
+        cateType,
+        fansCount,
+        currentPage,
+        role,
+        _ksTS:'1550732344164_101',
+        _output_charset:'UTF-8',
+        _input_charset:'UTF-8'
+      },
+      success(res){
+        if(res.status==0){
+          resolve(res.data)
+        }else{
+          reject(null)
+        }
+      },
+      error(){
+        reject(null)
+      }
+    })
+  })
+}
+let getAnchorData = ()=>{
+  let cateTypeArray=[]
+}
+console.log(darenFansCountList,darenCateTypeList,darenRoleList)
+mainAnchor(701,'100万以上','美搭').then((data)=>{
+
+});
