@@ -213,6 +213,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
 
   }
+  if (request.greeting == 'VSCdarenIdmission'){
+    
+  }
 })
 
 //获取抓取v任务的达人id
