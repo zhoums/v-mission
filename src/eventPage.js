@@ -1,7 +1,11 @@
 // 入口
 import config from './config'
 import util from './util'
-import {darenFansCountList,darenCateTypeList,darenRoleList}from './config'
+import {
+  darenCateTypeList,
+  darenFansCountList,
+  darenRoleList
+} from './config'
 
 //设置refer
 chrome.webRequest.onBeforeSendHeaders.addListener(
@@ -213,8 +217,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
 
   }
-  if (request.greeting == 'VSCdarenIdmission'){
-    
+  if (request.greeting == 'VSCdarenIdmission') {
+
   }
 })
 
@@ -588,36 +592,62 @@ let getQryFans = darenId => {
   })
 }
 // VSC mission functio -- get daren id function
-let mainAnchor = (cateType,fansCount,role,currentPage=1)=>{
-  return new Promise((resolve,reject)=>{
+let mainAnchor = (cateType, fansCount, role, currentPage = 1) => {
+  return new Promise((resolve, reject) => {
     $.ajax({
-      url:`https://v.taobao.com/micromission/req/selectCreatorV3.do`,
-      data:{
+      url: `https://v.taobao.com/micromission/req/selectCreatorV3.do`,
+      data: {
         cateType,
         fansCount,
         currentPage,
         role,
-        _ksTS:'1550732344164_101',
-        _output_charset:'UTF-8',
-        _input_charset:'UTF-8'
+        _ksTS: '1550732344164_101',
+        _output_charset: 'UTF-8',
+        _input_charset: 'UTF-8'
       },
-      success(res){
-        if(res.status==0){
+      success(res) {
+        res = JSON.parse(res)
+        if (res.status == 0) {
           resolve(res.data)
-        }else{
+        } else {
           reject(null)
         }
       },
-      error(){
+      error() {
         reject(null)
       }
     })
   })
 }
-let getAnchorData = ()=>{
-  let cateTypeArray=[]
-}
-console.log(darenFansCountList,darenCateTypeList,darenRoleList)
-mainAnchor(701,'100万以上','美搭').then((data)=>{
+let getAnchorData = async () => {
+  let interfaceParamList = [];
+  darenCateTypeList.forEach(async (darenCateType) => {
+    darenFansCountList.forEach(async (darenFansCount) => {
+      darenRoleList.forEach(async (darenRole) => {
+        // let page = 1;
+        interfaceParamList.push([darenCateType, darenFansCount, darenRole])
+        console.log(darenCateType, darenFansCount, darenRole)
 
-});
+        // let data = await mainAnchor(darenCateType, darenFansCount, darenRole, page)
+        // console.log(data.totalCounts, Math.ceil(data.totalCounts / 20), darenCateType, darenFansCount, darenRole)
+      })
+    })
+  })
+  console.log('darenCateType, darenFansCount, darenRole', interfaceParamList)
+  let index = 0;
+  forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
+  index++;
+  forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
+  // interfaceParamList.forEach(async item => {
+  //   let page = 1;
+  //
+  //   console.log(item[0], item[1], item[2], data)
+  // })
+
+}
+let forEachMainAnchor = (cateType, fansCount, role, currentPage = 1) => {
+  console.log('0090')
+  mainAnchor(cateType, fansCount, role, currentPage)
+}
+getAnchorData();
+// console.log(darenFansCountList, darenCateTypeList, darenRoleList)
