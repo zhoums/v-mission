@@ -634,20 +634,28 @@ let getAnchorData = async () => {
     })
   })
   console.log('darenCateType, darenFansCount, darenRole', interfaceParamList)
-  let index = 0;
-  forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
-  index++;
-  forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
-  // interfaceParamList.forEach(async item => {
-  //   let page = 1;
-  //
-  //   console.log(item[0], item[1], item[2], data)
-  // })
+
+  for (let ind = 0; ind < interfaceParamList.length; ind++) {
+    await forEachMainAnchor(interfaceParamList[ind][0], interfaceParamList[ind][1], interfaceParamList[ind][2]);
+  }
+
+  // index++;
+  // forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
 
 }
-let forEachMainAnchor = (cateType, fansCount, role, currentPage = 1) => {
-  console.log('0090')
-  mainAnchor(cateType, fansCount, role, currentPage)
+let forEachMainAnchor = async (cateType, fansCount, role, currentPage = 1) => {
+  let data = await mainAnchor(cateType, fansCount, role, currentPage); //先运行一页，取得总页数
+  let totalPage = Math.ceil(data.totalCounts / 20);
+  // util.sleep(30);
+  console.log('mock post', 'totalPage=' + totalPage, 'page=1', cateType, fansCount, role, )
+  if (totalPage > 1) {
+    for (let page = 2; page <= totalPage; page++) {
+      let data = await mainAnchor(cateType, fansCount, role, page);
+      // util.sleep(30);
+      console.log('mock post,page=' + page, cateType, fansCount, role, )
+    }
+
+  }
 }
 getAnchorData();
 // console.log(darenFansCountList, darenCateTypeList, darenRoleList)
