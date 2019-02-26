@@ -4,7 +4,9 @@ import util from './util'
 import {
   darenCateTypeList,
   darenFansCountList,
-  darenRoleList
+  darenRoleList,
+  vedioCateType,
+  cateType
 } from './config'
 
 //设置refer
@@ -624,12 +626,8 @@ let getAnchorData = async () => {
   darenCateTypeList.forEach(async (darenCateType) => {
     darenFansCountList.forEach(async (darenFansCount) => {
       darenRoleList.forEach(async (darenRole) => {
-        // let page = 1;
         interfaceParamList.push([darenCateType, darenFansCount, darenRole])
-        console.log(darenCateType, darenFansCount, darenRole)
-
-        // let data = await mainAnchor(darenCateType, darenFansCount, darenRole, page)
-        // console.log(data.totalCounts, Math.ceil(data.totalCounts / 20), darenCateType, darenFansCount, darenRole)
+        // console.log(darenCateType, darenFansCount, darenRole)
       })
     })
   })
@@ -647,15 +645,33 @@ let forEachMainAnchor = async (cateType, fansCount, role, currentPage = 1) => {
   let data = await mainAnchor(cateType, fansCount, role, currentPage); //先运行一页，取得总页数
   let totalPage = Math.ceil(data.totalCounts / 20);
   // util.sleep(30);
-  console.log('mock post', 'totalPage=' + totalPage, 'page=1', cateType, fansCount, role, )
+  data.result&&postDarenData(data.result)
+  console.log('mock post', 'totalPage=' + totalPage, 'page=1', cateType, fansCount, role,data )
   if (totalPage > 1) {
     for (let page = 2; page <= totalPage; page++) {
       let data = await mainAnchor(cateType, fansCount, role, page);
+      data.result&&postDarenData(data.result)
       // util.sleep(30);
       console.log('mock post,page=' + page, cateType, fansCount, role, )
     }
-
   }
+}
+let postDarenData=(darenPageData)=>{
+  darenPageData.forEach(item=>{
+    $.ajax({
+      url:`${config.willbeServer}/tb/v/syncSingleRecordDarenIdsAndName.wb`,
+      type:'post',
+      async:false,
+      headers: {
+        token: VSCtoken
+      },
+      data:{darenId:item.userId,darenName:item.nick},
+      success(data){
+        console.log('k',data)
+      }
+    })
+  })
+
 }
 getAnchorData();
 // console.log(darenFansCountList, darenCateTypeList, darenRoleList)
