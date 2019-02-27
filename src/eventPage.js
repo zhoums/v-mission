@@ -6,9 +6,11 @@ import {
   darenFansCountList,
   darenRoleList,
   vedioCateType,
-  cateType
+  cateType,
+  TWCateTypeList,
+  darenChannel
 } from './config'
-
+console.log('safd',vedioCateType,cateType)
 //设置refer
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function(details) {
@@ -612,15 +614,66 @@ let mainAnchor = (cateType, fansCount, role, currentPage = 1) => {
         if (res.status == 0) {
           resolve(res.data)
         } else {
-          reject(null)
+          resolve(null)
         }
       },
       error() {
-        reject(null)
+        resolve(null)
       }
     })
   })
 }
+let vedioDaren = (cateType,videoCateType, currentPage = 1)=>{
+  return new Promise((resolve, reject) => {
+    let param = {
+      cateType,
+      videoCateType,
+      currentPage,
+      _ksTS: '1551253834204_269',
+      _output_charset: 'UTF-8',
+      _input_charset: 'UTF-8'
+    };
+    if(!videoCateType){
+      delete param.videoCateType
+    }
+    $.ajax({
+      url: `https://v.taobao.com/micromission/req/selectCreatorV3.do`,
+      data: param,
+      success(res) {
+        res = JSON.parse(res)
+        if (res.status == 0) {
+          resolve(res.data)
+        } else {
+          resolve(null)
+        }
+      },
+      error() {
+        resolve(null)
+      }
+    })
+  })
+}
+let tuwenDaren = (cateType, fansCount, role, channelName,currentPage = 1)=>{
+
+}
+let postDarenData=(darenPageData)=>{
+  darenPageData.forEach(item=>{
+    $.ajax({
+      url:`${config.willbeServer}/tb/v/syncSingleRecordDarenIdsAndName.wb`,
+      type:'post',
+      async:false,
+      headers: {
+        token: VSCtoken
+      },
+      data:{darenId:item.userId,darenName:item.nick},
+      success(data){
+        console.log('k',data)
+      }
+    })
+  })
+
+}
+//获取直播服务的达人数据
 let getAnchorData = async () => {
   let interfaceParamList = [];
   darenCateTypeList.forEach(async (darenCateType) => {
@@ -641,37 +694,52 @@ let getAnchorData = async () => {
   // forEachMainAnchor(interfaceParamList[index][0], interfaceParamList[index][1], interfaceParamList[index][2]);
 
 }
-let forEachMainAnchor = async (cateType, fansCount, role, currentPage = 1) => {
-  let data = await mainAnchor(cateType, fansCount, role, currentPage); //先运行一页，取得总页数
-  let totalPage = Math.ceil(data.totalCounts / 20);
+let forEachMainAnchor = async (cateType, fansCount, role) => {
+  let data = await mainAnchor(cateType, fansCount, role); //先运行一页，取得总页数
+  let totalPage = data.totalCounts?Math.ceil(data.totalCounts / 20):0;
   // util.sleep(30);
   data.result&&postDarenData(data.result)
-  console.log('mock post', 'totalPage=' + totalPage, 'page=1', cateType, fansCount, role,data )
+  // console.log('mock post', 'totalPage=' + totalPage, 'page=1', cateType, fansCount, role,data )
   if (totalPage > 1) {
     for (let page = 2; page <= totalPage; page++) {
       let data = await mainAnchor(cateType, fansCount, role, page);
       data.result&&postDarenData(data.result)
       // util.sleep(30);
-      console.log('mock post,page=' + page, cateType, fansCount, role, )
+      // console.log('mock post,page=' + page, cateType, fansCount, role, )
     }
   }
 }
-let postDarenData=(darenPageData)=>{
-  darenPageData.forEach(item=>{
-    $.ajax({
-      url:`${config.willbeServer}/tb/v/syncSingleRecordDarenIdsAndName.wb`,
-      type:'post',
-      async:false,
-      headers: {
-        token: VSCtoken
-      },
-      data:{darenId:item.userId,darenName:item.nick},
-      success(data){
-        console.log('k',data)
-      }
-    })
-  })
-
+// getAnchorData();//trigger
+//获取视频服务的达人数据
+let forEachVedio = async (vedioDataItem)=>{
+  let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'');
+  // console.log(data)
+  let totalPage = data.totalCounts?Math.ceil(data.totalCounts / 20):0;
+  // console.log('page=',totalPage)
+  data.result&&postDarenData(data.result)
+  if (totalPage > 1) {
+    for (let page = 2; page <= totalPage; page++) {
+      let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'', page);
+      data.result&&postDarenData(data.result)
+      // console.log('mock post,page=' + page, cateType, fansCount, role, )
+    }
+  }
 }
-getAnchorData();
-// console.log(darenFansCountList, darenCateTypeList, darenRoleList)
+let getVedioData = async (vedioCateType,cateType)=>{
+  // console.log(vedioCateType,cateType)
+  let vedioDataList = [];//条件组合 List
+  cateType.forEach(item=>{
+      if(item=='602'){ // only 哇哦内容型视频 has attribute vedioCateType
+        vedioCateType.forEach(vedioCata=>{
+          vedioDataList.push({cateType:item,vedioCateType:vedioCata})
+        })
+      }else{
+        vedioDataList.push({cateType:item})
+      }
+  })
+  for(let item of vedioDataList){
+    let data = await forEachVedio(item)
+  }
+}
+// getVedioData(vedioCateType,cateType);//trigger
+//获取图文服务的达人数据
