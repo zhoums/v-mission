@@ -654,7 +654,32 @@ let vedioDaren = (cateType,videoCateType, currentPage = 1)=>{
   })
 }
 let tuwenDaren = (cateType, fansCount, role, channelName,currentPage = 1)=>{
-
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: `https://v.taobao.com/micromission/req/selectCreatorV3.do`,
+      data: {
+        cateType,
+        fansCount,
+        currentPage,
+        role,
+        channelName,
+        _ksTS: '1551259112356_465',
+        _output_charset: 'UTF-8',
+        _input_charset: 'UTF-8'
+      },
+      success(res) {
+        res = JSON.parse(res)
+        if (res.status == 0) {
+          resolve(res.data)
+        } else {
+          resolve(null)
+        }
+      },
+      error() {
+        resolve(null)
+      }
+    })
+  })
 }
 let postDarenData=(darenPageData)=>{
   darenPageData.forEach(item=>{
@@ -743,3 +768,33 @@ let getVedioData = async (vedioCateType,cateType)=>{
 }
 // getVedioData(vedioCateType,cateType);//trigger
 //获取图文服务的达人数据
+let forEachTuwen = async (vedioDataItem)=>{
+  // let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'');
+  // // console.log(data)
+  // let totalPage = data.totalCounts?Math.ceil(data.totalCounts / 20):0;
+  // // console.log('page=',totalPage)
+  // data.result&&postDarenData(data.result)
+  // if (totalPage > 1) {
+  //   for (let page = 2; page <= totalPage; page++) {
+  //     let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'', page);
+  //     data.result&&postDarenData(data.result)
+  //     // console.log('mock post,page=' + page, cateType, fansCount, role, )
+  //   }
+  // }
+}
+let getTuwenData = async (cateType,fansCount,role,channelName)=>{
+  // console.log(vedioCateType,cateType)
+  let vedioDataList = [];//条件组合 List
+  cateType.forEach(item=>{
+    fansCount.forEach(fansCountItem=>{
+      role.forEach(roleItem=>{
+        channelName.foreach(channelNameItem=>{
+
+        })
+      })
+    })
+  })
+  for(let item of vedioDataList){
+    let data = await forEachVedio(item)
+  }
+}
