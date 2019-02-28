@@ -10,7 +10,7 @@ import {
   TWCateTypeList,
   darenChannel
 } from './config'
-console.log('safd',vedioCateType,cateType)
+// console.log('safd',vedioCateType,cateType)
 //设置refer
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function(details) {
@@ -595,6 +595,7 @@ let getQryFans = darenId => {
     })
   })
 }
+
 // VSC mission functio -- get daren id function
 let mainAnchor = (cateType, fansCount, role, currentPage = 1) => {
   return new Promise((resolve, reject) => {
@@ -666,6 +667,32 @@ let tuwenDaren = (cateType, fansCount, role, channelName,currentPage = 1)=>{
         _ksTS: '1551259112356_465',
         _output_charset: 'UTF-8',
         _input_charset: 'UTF-8'
+      },
+      success(res) {
+        res = JSON.parse(res)
+        if (res.status == 0) {
+          resolve(res.data)
+        } else {
+          resolve(null)
+        }
+      },
+      error() {
+        resolve(null)
+      }
+    })
+  })
+}
+let activityDaren = (subjectId, currentPage = 1,pageSize=30) => {
+  return new Promise((resolve,reject)=>{
+    $.ajax({
+      url:'https://v.taobao.com/micromission/select_micro_mission_subject_daren_v2.do',
+      data:{
+        subjectId:subjectId,
+        page:currentPage,
+        pageSize:pageSize,
+        _ksTS: '1551321913629_31',
+        _input_charset: 'utf-8',
+        _output_charset: 'utf-8'
       },
       success(res) {
         res = JSON.parse(res)
@@ -768,33 +795,104 @@ let getVedioData = async (vedioCateType,cateType)=>{
 }
 // getVedioData(vedioCateType,cateType);//trigger
 //获取图文服务的达人数据
-let forEachTuwen = async (vedioDataItem)=>{
-  // let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'');
-  // // console.log(data)
-  // let totalPage = data.totalCounts?Math.ceil(data.totalCounts / 20):0;
-  // // console.log('page=',totalPage)
-  // data.result&&postDarenData(data.result)
-  // if (totalPage > 1) {
-  //   for (let page = 2; page <= totalPage; page++) {
-  //     let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'', page);
-  //     data.result&&postDarenData(data.result)
-  //     // console.log('mock post,page=' + page, cateType, fansCount, role, )
-  //   }
-  // }
+let forEachTuwen = async (tuwenDataItem)=>{
+  let data = await tuwenDaren(tuwenDataItem.cateType,tuwenDataItem.fansCount,tuwenDataItem.role,tuwenDataItem.channelName);
+  let totalPage = data.totalCounts?Math.ceil(data.totalCounts / 20):0;
+  data.result&&postDarenData(data.result)
+  if (totalPage > 1) {
+    for (let page = 2; page <= totalPage; page++) {
+      let data = await tuwenDaren(tuwenDataItem.cateType,tuwenDataItem.fansCount,tuwenDataItem.role,tuwenDataItem.channelName, page);
+      data.result&&postDarenData(data.result)
+      // console.log('mock post,page=' + page, cateType, fansCount, role, )
+    }
+  }
 }
 let getTuwenData = async (cateType,fansCount,role,channelName)=>{
-  // console.log(vedioCateType,cateType)
-  let vedioDataList = [];//条件组合 List
+  let tuwenDataList = [];//条件组合 List
   cateType.forEach(item=>{
     fansCount.forEach(fansCountItem=>{
       role.forEach(roleItem=>{
-        channelName.foreach(channelNameItem=>{
-
+        channelName.forEach(channelNameItem=>{
+          tuwenDataList.push({cateType:item,fansCount:fansCountItem,role:roleItem,channelName:channelNameItem})
         })
       })
     })
   })
-  for(let item of vedioDataList){
-    let data = await forEachVedio(item)
+  for(let item of tuwenDataList){
+    let data = await forEachTuwen(item)
   }
 }
+// getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel); //trigger
+//获取活动服务的达人数据
+let getSubjectData=(page=1,pageSize=12)=>{
+  return new Promise((resolve,reject)=>{
+    $.ajax({
+      url:'https://v.taobao.com/micromission/subjectPageV2.do',
+      data:{
+        tabKey:0,
+        pageSize:pageSize,
+        current_page:page,
+        channel: '全部',
+        subject_scene: '全部',
+        _ksTS: '1551321708603_255',
+        _input_charset: 'utf-8',
+        _output_charset: 'UTF-8'
+      },
+      success(data){
+        data=JSON.parse(data);
+        if(data.status==0){
+            let {subjects,total,pageSize}=data.data
+            resolve({subjects,total,pageSize})
+          }else{
+            resolve(null)
+          }
+      },
+      error(err){
+        console.log('error:',err)
+        resolve(null)
+      }
+    })
+  })
+}
+let getSubjectIdList = async ()=>{
+  let totalPages=1;
+  let subjectIdList=[];
+
+  let data = await getSubjectData();
+  totalPages = Math.ceil(data.total/data.pageSize)
+  data.subjects.forEach(item=>{
+    subjectIdList.push(item.id)
+  })
+
+  for(let page=2;page<=totalPages;page++){
+    let data = await getSubjectData(page);
+    data.subjects.forEach(item=>{
+      subjectIdList.push(item.id)
+    })
+  }
+  return new Promise((resolve,reject)=>{
+    resolve(subjectIdList)
+  })
+}
+
+let getActivityDarenList = async ()=>{
+  getSubjectIdList().then((data)=>{
+    let page=1;
+    data.forEach(async item=>{
+      let activity = await activityDaren(item,page,30);
+      let totalPage = Math.ceil(activity.total/30);
+      activity.dataList && postDarenData(activity.dataList);
+      if(totalPage>page){
+        for(let p=2; p<=totalPage;p++){
+          let activity = await activityDaren(item,p,30);
+          activity.dataList && postDarenData(activity.dataList);
+        }
+      }
+    })
+  })
+}
+
+getAnchorData();//trigger
+getVedioData(vedioCateType,cateType);//trigger
+getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel); //trigger
+getActivityDarenList();//trigger
