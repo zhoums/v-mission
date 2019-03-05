@@ -222,7 +222,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   }
   if (request.greeting == 'VSCdarenIdmission') {
-
+    chrome.runtime.sendMessage({
+      greeting: "popupTips",
+    }, function(response) {
+      console.log('response');
+    });
+    getAnchorData().then(()=>{
+      getVedioData(vedioCateType,cateType).then(()=>{
+        getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel).then(()=>{
+          getActivityDarenList();//trigger
+        })
+      })
+    });//trigger
+    // getVedioData(vedioCateType,cateType);//trigger
+    // getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel); //trigger
+    // getActivityDarenList();//trigger
   }
 })
 
@@ -597,6 +611,7 @@ let getQryFans = darenId => {
 }
 
 // VSC mission functio -- get daren id function
+let finishGetDarenId=0;
 let mainAnchor = (cateType, fansCount, role, currentPage = 1) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -755,8 +770,8 @@ let forEachMainAnchor = async (cateType, fansCount, role) => {
   if (totalPage > 1) {
     for (let page = 2; page <= totalPage; page++) {
       let data = await mainAnchor(cateType, fansCount, role, page);
-      data.result&&postDarenData(data.result)
-      // util.sleep(30);
+      data.result&&postDarenData(data.result);
+
       // console.log('mock post,page=' + page, cateType, fansCount, role, )
     }
   }
@@ -774,6 +789,7 @@ let forEachVedio = async (vedioDataItem)=>{
       let data = await vedioDaren(vedioDataItem.cateType,vedioDataItem.vedioCateType||'', page);
       data.result&&postDarenData(data.result)
       // console.log('mock post,page=' + page, cateType, fansCount, role, )
+
     }
   }
 }
@@ -804,6 +820,7 @@ let forEachTuwen = async (tuwenDataItem)=>{
       let data = await tuwenDaren(tuwenDataItem.cateType,tuwenDataItem.fansCount,tuwenDataItem.role,tuwenDataItem.channelName, page);
       data.result&&postDarenData(data.result)
       // console.log('mock post,page=' + page, cateType, fansCount, role, )
+
     }
   }
 }
@@ -886,13 +903,15 @@ let getActivityDarenList = async ()=>{
         for(let p=2; p<=totalPage;p++){
           let activity = await activityDaren(item,p,30);
           activity.dataList && postDarenData(activity.dataList);
+          if(p==totalPage){
+            chrome.runtime.sendMessage({
+              greeting: "HidePopupTips",
+            }, function(response) {
+              console.log('response');
+            });
+          }
         }
       }
     })
   })
 }
-
-getAnchorData();//trigger
-getVedioData(vedioCateType,cateType);//trigger
-getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel); //trigger
-getActivityDarenList();//trigger
