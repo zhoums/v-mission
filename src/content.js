@@ -17,17 +17,29 @@
        sendResponse({
          authorPageUrl: url
        });
-     } else if (request.greeting == "vm-turnpage") {
+     }
+     if (request.greeting == "vm-turnpage") {
+       console.log('vm-turnpage-----vm-turnpage')
        chrome.runtime.sendMessage({
          greeting: "VSCmission",
        }, function(response) {
          console.log(response);
        });
-     } else {
-       sendResponse({}); // snub them.
+     }
+     if (request.greeting == 'popupTips') {
+       if ($("#trigger_v").length) {
+         $("#running_tip").remove();
+         $('body').append('<div id="running_tip" style="position:absolute;right:10px; top:10px; background:#fff;color:#f50; border:#f50; padding:10px;">回填V任务达人昵称正在回填，请稍后。。。</div>')
+       }
+
+     }
+     if (request.greeting == 'HidePopupTips') {
+       if ($("#trigger_v").length) {
+         $("#running_tip").remove();
+         $('body').append('<div id="running_tip" style="position:absolute;right:10px; top:10px; background:#fff;color:#f50; border:#f50; padding:10px;">回填V任务达人昵称回填完成。</div>')
+       }
      }
    });
- console.log($("div[title='达人主页']").length)
  $(function() {
    if ($("div[title='达人主页']").length) {
      let targetData = {
@@ -56,6 +68,16 @@
      }, function(response) {
        console.log(response);
      });
+   }
+   //trigger_v是触发按钮的ID
+   if ($("#trigger_v").length) {
+     $("#trigger_v").on("click", () => {
+       chrome.runtime.sendMessage({
+         greeting: "VSCdarenIdmission",
+       }, function(response) {
+         console.log('response');
+       });
+     })
    }
    // console.log(location.href, location.href.includes('chowsangsang.com'))
    // if (location.href.includes('chowsangsang.com')) {

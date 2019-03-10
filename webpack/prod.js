@@ -5,27 +5,28 @@ const common = require('./common')
 
 
 module.exports = webpackMerge(common, {
-	plugins: [
-        new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify('production')
-        }),
+  watch: true,
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production')
+    }),
 
-        new webpack.LoaderOptionsPlugin({
-            minimize: true,
-            debug: false
-        }),
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }),
 
-        new UglifyEsPlugin({
-            beautify: false,
-            mangle: {
-                screw_ie8: true,
-                keep_fnames: true
-            },
-            compress: {
-                screw_ie8: true
-            },
-            comments: false,
-        }),
-	],
+    new UglifyEsPlugin({
+      beautify: false,
+      mangle: {
+        screw_ie8: true,
+        keep_fnames: true
+      },
+      compress: {
+        screw_ie8: true
+      },
+      comments: false,
+    }),
+  ],
 
 })

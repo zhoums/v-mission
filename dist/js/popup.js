@@ -1,4 +1,4 @@
-$(function(){
+$(function() {
   $("#ck").on("click", () => {
     chrome.runtime.sendMessage({
       greeting: "VSCmission",
