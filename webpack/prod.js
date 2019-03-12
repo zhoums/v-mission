@@ -5,7 +5,7 @@ const common = require('./common')
 
 
 module.exports = webpackMerge(common, {
-  // watch: true,
+  watch: true,
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
