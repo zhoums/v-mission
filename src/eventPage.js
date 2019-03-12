@@ -12,6 +12,10 @@ import {
 } from './config'
 // console.log('safd',vedioCateType,cateType)
 //设置refer
+let agentVersion = navigator.userAgent.toLowerCase().match(/chrome\/[\d.]+/gi).toString().match(/[\d]{1,}/g);
+let bigVersion = Number(agentVersion[0]);
+
+let kui = bigVersion >= 72 ? ["blocking", "requestHeaders", "extraHeaders"] : ["blocking", "requestHeaders"];
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function(details) {
     if (details.type === 'xmlhttprequest') {
@@ -37,7 +41,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     }
   }, {
     urls: ['https://*.taobao.com/*']
-  }, ["blocking", "requestHeaders", "extraHeaders"]
+  }, kui
 );
 let darenPageUrl = [];
 //VSC 第二次V任务功能前缀
@@ -87,7 +91,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })
   }
   if (request.greeting == 'VSCmission') {
-
+    console.log('begin VSCmission')
     chrome.tabs.getSelected(null, function(tab) {
       if (!VSCtab) {
         VSCtab = tab.id;
@@ -124,7 +128,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           // console.log('daren id:' + item.darenId)
           // let darenMain = await getDarenMain(item.darenId);
           getDarenMain(item.darenId).then(async darenMain => {
-            // console.log('getDarenMain,then')
+            console.log('getDarenMain,then')
             if (darenMain) {
               initParam.fansCount = darenMain ? darenMain.fansCount : 0
               initParam.agencyName = darenMain && darenMain.darenAgency && darenMain.darenAgency.agencyName ? darenMain.darenAgency.agencyName : 0
@@ -154,6 +158,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               initParam.serviceScore = darenMain && darenMain.darenMissionData && darenMain.darenMissionData.avgScore ? darenMain.darenMissionData.avgScore : ""
               initParam.orderTakingFinishRate = darenMain && darenMain.darenMissionData && darenMain.darenMissionData.completeRate ? darenMain.darenMissionData.completeRate : "";
 
+              util.sleep(400)
+              console.log('sleep 300')
+
               let darenContent7 = await getDarenContent(item.darenId);
 
               initParam.contentPub7Days = darenContent7.result && darenContent7.result.publish ? darenContent7.result.publish : 0;
@@ -169,6 +176,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               sevenDays.contentLiveBrowse = darenContent7.result && darenContent7.result.live_pv ? darenContent7.result.live_pv : 0;
               sevenDays.contentVideoBrowse = darenContent7.result && darenContent7.result.video_pv ? darenContent7.result.video_pv : 0;
 
+              util.sleep(400)
+              console.log('sleep 300')
+
               let darenContent30 = await getDarenContent(item.darenId, 30);
               initParam.contentPub30Days = darenContent30.result && darenContent30.result.publish ? darenContent30.result.publish : 0;
               initParam.contentBrowse30Days = darenContent30.result && darenContent30.result.text_pv ? darenContent30.result.text_pv : 0;
@@ -182,6 +192,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               thirtyDays.contentGuide = darenContent30.result && darenContent30.result.ipv ? darenContent30.result.ipv : 0;
               thirtyDays.contentLiveBrowse = darenContent30.result && darenContent30.result.live_pv ? darenContent30.result.live_pv : 0;
               thirtyDays.contentVideoBrowse = darenContent30.result && darenContent30.result.video_pv ? darenContent30.result.video_pv : 0;
+
+              util.sleep(400)
+              console.log('sleep 300')
+
 
               let darenContent90 = await getDarenContent(item.darenId, 90);
               initParam.contentPub90Days = darenContent90.result && darenContent90.result.publish ? darenContent90.result.publish : 0;
@@ -197,12 +211,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               ninetyDays.contentLiveBrowse = darenContent90.result && darenContent90.result.live_pv ? darenContent90.result.live_pv : 0;
               ninetyDays.contentVideoBrowse = darenContent90.result && darenContent90.result.video_pv ? darenContent90.result.video_pv : 0;
 
+              util.sleep(400)
+              console.log('sleep 300')
+
+
 
               let qryFans = await getQryFans(item.darenId);
               initFans = Object.assign({}, initFans, qryFans)
 
               await postVmission(initParam, initFans, sevenDays, thirtyDays, ninetyDays, needTurnpage)
             } else if (needTurnpage) {
+              console.log('不正常：',VSCpage)
               //如果darenMain不为空，postVmission里面翻页，否则在这里翻页
               if (VSCpage < VSCtotalpage) {
                 VSCpage++;
@@ -520,7 +539,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
-
+  util.sleep(200)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskFans.wb`,
     type: 'post',
@@ -534,7 +553,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
-  util.sleep(500)
+  util.sleep(200)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
@@ -548,7 +567,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
-  util.sleep(500)
+  util.sleep(200)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
@@ -562,7 +581,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log(response)
     }
   })
-  util.sleep(500)
+  util.sleep(200)
   $.ajax({
     url: `${config.willbeServer}/tb/v/syncVTaskStat.wb`,
     type: 'post',
@@ -579,6 +598,7 @@ let postVmission = (param, fasnObj, sevenDays, thirtyDays, ninetyDays, turnpage 
       // console.log('skjdaldjlfkl')
     }
   })
+  console.log('正常：',VSCpage,turnpage && VSCpage < VSCtotalpage)
   if (turnpage && VSCpage < VSCtotalpage) {
     VSCpage++;
     // console.log('VSCpage++', VSCpage)
