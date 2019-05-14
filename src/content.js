@@ -1,8 +1,5 @@
  chrome.extension.onRequest.addListener(
    function(request, sender, sendResponse) {
-     console.log(sender.tab ?
-       "from a content script:" + sender.tab.url :
-       "from the extension");
      if (request.greeting == "getArctilUrl") {
        // $("div[data-spm='account_vertical']>a");
        var url = 'https:' + $("div[data-spm='account_vertical']>a").attr('href');
@@ -39,8 +36,15 @@
          $('body').append('<div id="running_tip" style="position:absolute;right:10px; top:10px; background:#fff;color:#f50; border:#f50; padding:10px;">回填V任务达人昵称回填完成。</div>')
        }
      }
+     if(request.greeting=='v-notLogin'){
+       console.log('v-notLogin')
+       alert('Please login first!')
+     }
    });
  $(function() {
+   chrome.runtime.sendMessage({
+     greeting:'vTHEmission',
+   }, function(response){});
    if ($("div[title='达人主页']").length) {
      let targetData = {
        darenHomepage: location.href

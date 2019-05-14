@@ -1,6 +1,7 @@
 // 入口
 import config from './config'
 import util from './util'
+import Eventproxy from 'eventproxy'
 import {
   darenCateTypeList,
   darenFansCountList,
@@ -44,18 +45,62 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   }, kui
 );
 let darenPageUrl = [];
-//VSC 第二次V任务功能前缀
+//VSC 第二次V任务功能前缀, VTH 第三次V任务功能前缀
 let VSCpage = 1;
 let VSCpagesize = 50;
 let VSCtotalpage = -1;
 let VSCtoken = 'KE923jddudk3FYjWedkHH';
 let VSCtab;
+let VTHpage=1,
+    VTHpagesize=10,
+    VTHtotalpage=0;
+let ep = new Eventproxy();
+ep.tail('postFinishAll',async function(postFinishAll){
+  //await post(postFinishAll);
+  util.sleep(1000)
+  // if(VTHpage<VTHtotalpage){
+  if(VTHpage<3){
+    VTHpage+=1;
+    fetchFinishAllData(VTHpage,VTHpagesize)
+  }else{
+    VTHpage=1;
+    VTHtotalpage=0;
+    waitForVerifyOfmy();
+  }
+})
+ep.tail('postMyVerification',async (postMyVerification)=>{
+  //await post(postMyVerification);
+  util.sleep(1000)
+  if(VTHpage<VTHtotalpage){
+  // if(VTHpage<10){
+    VTHpage+=1;
+    waitForVerifyOfmy(VTHpage,VTHpagesize)
+  }else{
+    VTHpage=1;
+    VTHtotalpage=0;
+    rejectedOfmy();
+  }
+})
+ep.tail('postMyRejection',async (postMyRejection)=>{
+  //await post(postMyRejection);
+  util.sleep(1000)
+  // if(VTHpage<VTHtotalpage){
+  if(VTHpage<3){
+    VTHpage+=1;
+    rejectedOfmy(VTHpage,VTHpagesize)
+  }else{
+    VTHpage=1;
+    VTHtotalpage=0;
+    // rejectedOfmy();
+  }
+})
+ep.tail('ll',function(){
+  console.log('ll function')
+})
 
 chrome.browserAction.onClicked.addListener(function(tab) {
   main();
 });
-
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.greeting === "sendDarenPage") {
     if (!darenPageUrl.includes(request.darenPageUrl)) {
@@ -250,6 +295,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // getTuwenData(TWCateTypeList,darenFansCountList,darenRoleList,darenChannel); //trigger
     // getActivityDarenList();//trigger
   }
+  if (request.greeting == 'vTHEmission'){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+      VSCtab = tabs.length ? tabs[0].id: null;
+      checkIdentify().then(res=>{
+        if(res.status==0){
+          fetchFinishAllData(VTHpage,VTHpagesize)
+        }
+        if(res.status==999){
+          chrome.tabs.sendRequest(VSCtab,{
+            greeting:'v-notLogin'
+          },function(response){})
+        }
+      })
+    });
+  }
 })
 
 //获取抓取v任务的达人id
@@ -269,7 +329,6 @@ function getAllVTaskDarenIds(page) {
     })
   })
 }
-
 
 //获取所有未抓取达人数据的文章列表
 function getDarenArticleUrl(page) {
@@ -943,5 +1002,104 @@ let getActivityDarenList = async () => {
         }
       }
     })
+  })
+}
+
+// v-mission third mission
+let checkIdentify=()=>{
+  return new Promise((resolve,reject)=>{
+    $.ajax({
+      url:'https://v.taobao.com/micromission/check_identity.do?_ksTS=1557732288829_45',
+      success(response){
+        resolve(JSON.parse(response))
+      },
+      error(err){
+        reject(err);
+      }
+    })
+  })
+}
+let function_fetchData = (param,emitFunName)=>{
+  $.ajax({
+    url:`https://v.taobao.com/micromission/req/get_micro_mission_daren_merchant_by_status.do`,
+    data:param,
+    success(data){
+      let _data= JSON.parse(data);
+      if(_data.status==0){
+        VTHtotalpage=_data.data.result?_data.data.result.pagination.totalPage:VTHtotalpage;
+        //todo 详情页
+        //https://v.taobao.com/micromission/get_mission_detail_info.do?mission_id=15947767153&_ksTS=1557823555405_17
+        if(param.micro_mission_status&&param.micro_mission_status==-1){
+          for(let i=0;i<_data.data.result.microMissions.length;i++){
+            let id=_data.data.result.microMissions[i].microSubmissions[0].id;
+            $.ajax({
+              url:`https://v.taobao.com/micromission/get_mission_detail_info.do?mission_id=${id}&_ksTS=1557823555405_17`,
+              success(data){
+                console.log('detail page',JSON.parse(data));
+                ep.emit('ll',JSON.parse(data))
+              }
+            })
+          }
+        }
+        ep.emit(emitFunName,_data.data.result)
+      }else{
+        ep.emit(emitFunName,{})
+      }
+    },
+    error(err){
+      ep.emit(emitFunName,{})
+    }
+  })
+}
+let fetchFinishAllData = (page=1,pageSize=VTHpagesize)=>{
+    let param = {
+      current_page:page,
+      pageSize:pageSize,
+      micro_mission_status:-1,
+      _tb_token_:'5731ae673367e',
+      _ksTS:'1557802041473_69',
+      _output_charset:'UTF-8',
+      _input_charset:'UTF-8'
+    };
+    function_fetchData(param,'postFinishAll')
+}
+let waitForVerifyOfmy = (page=1,pageSize=VTHpagesize)=>{
+  let param = {
+    current_page:page,
+    pageSize,
+    micro_mission_status:0,
+    query_type:0,
+    owner_status:1,
+    _tb_token_:'5731ae673367e',
+    _ksTS:'1557813941516_97',
+    _output_charset:'UTF-8',
+    _input_charset:'UTF-8'
+  };
+  function_fetchData(param,'postMyVerification')
+}
+let rejectedOfmy = (page=1,pageSize=VTHpagesize)=>{
+  let param = {
+    current_page:page,
+    pageSize,
+    micro_mission_status:2,
+    query_type:0,
+    owner_status:1,
+    _tb_token_:'5731ae673367e',
+    _ksTS:'1557813941516_97',
+    _output_charset:'UTF-8',
+    _input_charset:'UTF-8'
+  };
+  function_fetchData(param,'postMyRejection')
+}
+let fetchDarenList = ()=>{
+  $.ajax({
+    url:'',
+    data:'',
+    success(data){
+      ep.emit('',idLIST)
+    },
+    error(){
+
+    }
   })
 }
