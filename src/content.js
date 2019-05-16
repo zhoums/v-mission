@@ -42,9 +42,6 @@
      }
    });
  $(function() {
-   chrome.runtime.sendMessage({
-     greeting:'vTHEmission',
-   }, function(response){});
    if ($("div[title='达人主页']").length) {
      let targetData = {
        darenHomepage: location.href

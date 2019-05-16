@@ -13,12 +13,16 @@ $(function() {
       console.log('response');
     });
   })
+  $("#interval").on("click", () => {
+    chrome.runtime.sendMessage({
+      greeting: "intervalMission",
+    }, function(response) {
+      console.log('response');
+    });
+  })
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.greeting == 'popupTips') {
-      $('#drtip').html('回填V任务达人昵称正在回填，请稍后。。。')
-    }
-    if (request.greeting == 'HidePopupTips') {
-      $('#drtip').html('回填V任务达人昵称回填完成。')
+      $('#drtip').html(request.text)
     }
   })
 })
